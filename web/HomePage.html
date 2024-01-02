@@ -1,0 +1,93 @@
+<html lang="en">
+<head>
+    <!-- HTML Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="msapplication-TileColor" content="#008987">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description" content="">
+
+    <!-- Facebook Meta Tags -->
+    <meta property="og:url" content="https://orders.lassehjalpen.se">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Lasse Hjälpen Orders">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="https://orders.lassehjalpen.se/android-chrome-384x384.png">
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="orders.lassehjalpen.se">
+    <meta property="twitter:url" content="https://orders.lassehjalpen.se">
+    <meta name="twitter:title" content="Lasse Hjälpen Orders">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:image" content="https://orders.lassehjalpen.se/android-chrome-384x384.png">
+
+    <!-- CSS -->
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /*justify-content: center;*/
+            height: 100vh;
+            margin: 0;
+        }
+
+        .search-bar {
+            width: 40%;
+            height: 30px;
+            border: darkgray;
+            margin-bottom: 20px;
+            text-align: center;
+            background-color: #3b3b3b;
+        }
+
+        .login-form {
+            display: none;
+            text-align: center;
+        }
+
+        .login-form input {
+            margin: 5px;
+        }
+
+        .login-form-button {
+            width: 5%;
+            color: black;
+            text-align: center;
+            background-color: darkgray;
+            padding: 3px;
+        }
+
+        .login-div {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <input class="search-bar" type="text" id="orderSearch" name="Order Search" minlength="4" placeholder="#0000" title="Order number">
+    <div class="login-div">
+        <a class="login-form-button" onclick="toggleLoginForm()">Login</a>
+    </div>
+    <form id="loginForm" class="login-form">
+        <label for="email">Email:</label>
+        <input type="text" id="email" name="email" required>
+
+        <br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+
+        <br>
+
+        <input type="submit" value="Login">
+    </form>
+
+    <script type="module" src="./HomePage.js"></script>
+</body>
+</html>

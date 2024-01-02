@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- HTML Meta Tags -->
+    <title><!--OrderNumber--></title>
+    <meta name="description" content="information about <!--OrderNumber-->">
+
+    <!-- Facebook Meta Tags -->
+    <meta property="og:url" content="https://orders.lassehjalpen.se/<!--OrderNumber-->">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="information about <!--OrderNumber-->">
+    <meta property="og:description" content="information about <!--OrderNumber-->">
+    <meta property="og:image" content="https://orders.lassehjalpen.se/android-chrome-384x384.png">
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="orders.lassehjalpen.se">
+    <meta property="twitter:url" content="https://orders.lassehjalpen.se/<!--OrderNumber-->">
+    <meta name="twitter:title" content="information about <!--OrderNumber-->">
+    <meta name="twitter:description" content="information about <!--OrderNumber-->">
+    <meta name="twitter:image" content="https://orders.lassehjalpen.se/android-chrome-384x384.png">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+
+        .head {
+            background-color: #A4A4A4FF;
+            width: 100%;
+            height: 30px;
+            font-size: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .text {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="head">
+        <a class="text"><!--OrderNumber--></a>
+    </div>
+    <div>
+        <a style="color: red" id="received" >✖</a><a class="text" style="margin-left: 20px">Order Received</a>
+    </div>
+    <div>
+        <a style="color: red" id="packed"   >✖</a><a class="text" style="margin-left: 20px">Order Packed</a>
+    </div>
+    <div>
+        <a style="color: red" id="shipped"  >✖</a><a class="text" style="margin-left: 20px">Order Shipped</a>
+    </div>
+    <div>
+        <a style="color: red" id="delivered">✖</a><a class="text" style="margin-left: 20px">Order Delivered</a>
+    </div>
+    <script src="./orderPage.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@ import {Cookies} from "./api/cookies";
 import {TranssmisionPackage} from "../app/packages/transsmisionPackage";
 import {Method} from "../app/packages/method";
 
-let ws: WebSocket = new WebSocket("wss://orders.lassehjalpen.se:443"); //
+let ws: WebSocket = new WebSocket("wss://localhost"); // orders.lassehjalpen.se
 
 ws.addEventListener("error", console.error);
 ws.addEventListener("message", (data) => {
@@ -12,7 +12,9 @@ ws.addEventListener("message", (data) => {
             name: "accessToken",
             value: dataPackage.data.accessToken,
             expires: dataPackage.data.expirationDate,
-            domain: "orders.lassehjalpen.se"
+            domain: "localhost", // orders.lassehjalpen.se
+            sameSite: "Strict",
+            secure: true
         })
         window.location.href = dataPackage.data.page;
     }else if(dataPackage.method === Method.REDIRECT){

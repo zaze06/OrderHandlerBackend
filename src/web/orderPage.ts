@@ -1,7 +1,7 @@
 import { Method } from "../app/packages/method";
 import { TranssmisionPackage } from "../app/packages/transsmisionPackage";
 
-let ws: WebSocket = new WebSocket("wss://orders.lassehjalpen.se");
+let ws: WebSocket = new WebSocket("wss://localhost"); // orders.lassehjalpen.se
 
 let pathArray = window.location.href.split('/');
 let orderNumber = parseInt(pathArray[pathArray.length - 1]);
@@ -26,7 +26,7 @@ ws.addEventListener("message", (data) => {
     let dataPackage: TranssmisionPackage = JSON.parse(data.data);
 
     if(dataPackage.method === Method.ORDER_INFO){
-        switch (dataPackage.data.orderInfo.status) {
+        switch (dataPackage.data.status) {
             case 4: setValid(delivered);
             case 3: setValid(shipped);
             case 2: setValid(packed);

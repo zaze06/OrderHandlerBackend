@@ -43,7 +43,7 @@ const server = https.createServer(options, (req, res: ServerResponse) => {
                 res.end(data);
             });
         }
-    }else if(req.url === "/orderlist"){
+    }else if(req.url.toLowerCase() === "/orderlist" || req.url.toLowerCase() === "/orderlist.html"){
         let username = sessions.getUsername(cookies["accessToken"]);
         if(username){
             fs.readFile("./web/orderList.html", (err, data) => {
@@ -213,7 +213,20 @@ Your not logged in! Redirecting to <a href="/">Home page</a>
             }
 
             res.statusCode = 200;
-            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Content-Type", "application/javascript");
+            res.end(data);
+        })
+    }
+    else if(req.url === "/orderPage.js"){
+        fs.readFile("./web/orderPage.js", (err, data) => {
+            if(err){
+                res.statusCode = 404;
+                res.end();
+                return;
+            }
+
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/javascript");
             res.end(data);
         })
     }
@@ -256,10 +269,7 @@ socket.on("data", (data) => {
             if (client) {
                 sendToWS({
                     method: Method.LIST,
-                    data: {
-                        list: dataPackage.data.list,
-                        method: Method.UPDATE_ORDERS
-                    }
+                    data: dataPackage.data
                 }, client.ws);
             }
             break;
@@ -307,16 +317,26 @@ socket.on("data", (data) => {
                 sendToWS({
                     method: Method.ORDER_INFO,
                     data: {
-                        orderInfo: {
-                            status: dataPackage.data.orderInfo.status
-                        }
+                        status: dataPackage.data.status
                     }
                 }, webSocket);
             }
+            break;
         }
 
-        default: {
-            // Handle the default case if none of the above conditions match
+        case Method.UPDATE_ORDER: {
+            for (let client of newOrderListeners) {
+                if (sessions.validateSession(client.id)) {
+                    sendToWS(dataPackage, client.ws);
+                } else {
+                    sendToWS({
+                        method: Method.INFO,
+                        data: {
+                            text: "Your session is no longer valid"
+                        }
+                    }, client.ws);
+                }
+            }
         }
     }
 });
@@ -446,6 +466,43 @@ wss.on("connection", (ws) => {
                         client: orderInfoWaiter.length -1
                     }
                 });
+                break
+            }
+            case Method.NEXT_STAGE: {
+                if(!sessions.validateSession(receivedPackage.data.accessToken)){
+                    sendToWS({
+                        method: Method.REDIRECT,
+                        data: {
+                            page: "/"
+                        }
+                    }, ws);
+                    break;
+                }
+                sendToSocket({
+                    method: Method.NEXT_STAGE,
+                    data: {
+                        order: receivedPackage.data.order
+                    }
+                });
+                break;
+            }
+            case Method.PREVIOUS_STAGE: {
+                if(!sessions.validateSession(receivedPackage.data.accessToken)){
+                    sendToWS({
+                        method: Method.REDIRECT,
+                        data: {
+                            page: "/"
+                        }
+                    }, ws);
+                    break;
+                }
+                sendToSocket({
+                    method: Method.PREVIOUS_STAGE,
+                    data: {
+                        order: receivedPackage.data.order
+                    }
+                });
+                break;
             }
         }
     });

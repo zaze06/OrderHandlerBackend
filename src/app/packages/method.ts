@@ -5,6 +5,7 @@ export enum Method {
     CHECK = "CHECK",
     REDIRECT = "REDIRECT",
     UPDATE_ORDERS = "UPDATE_ORDERS",
+    UPDATE_ORDER = "UPDATE_ORDER",
     IDENTIFIER = "IDENTIFIER",
     PRINT = "PRINT",
     LIST = "LIST",
@@ -13,4 +14,6 @@ export enum Method {
     ORDER = "ORDER",
     LOGOUT = "LOGOUT",
     ORDER_INFO = "ORDER_INFO",
+    NEXT_STAGE = "NEXT_STAGE",
+    PREVIOUS_STAGE = "PREVIOUS_STAGE",
 }

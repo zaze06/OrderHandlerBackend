@@ -4,7 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "all": "npm run compile && npm run browserfy && npm run deploy && npm run restart",
+    "build": "npm run compile && npm run browserfy",
+    "compile": "tsc -p ./tsconfig.json",
+    "browserfy": "node browserfy.js",
+    "deploy": "npm run copy-files && npm run copy-packages && npm run copy-icons",
+    "copy-files": "copyfiles 'web/*' '~/webstore/frontend/web' -u 1",
+    "copy-packages": "copyfiles 'build/app/*.js' '~/webstore/frontend/src/packages' -u 1",
+    "copy-icons": "copyfiles 'icons/*' '~/webstore/frontend/icons' -u 1",
+    "restart": "echo 'Restarting web-shop-orders service' && sudo service web-shop-orders restart",
+    "run": "npm run build && node build/app/main.js"
+  },
+  "devDependencies": {
+    "copyfiles": "^2.4.1"
   },
   "author": "",
   "license": "ISC",

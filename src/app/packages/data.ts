@@ -23,7 +23,5 @@ export type Data = {
     method?: Method,
     orderID?: string,
     expirationDate?: number,
-    orderInfo?: {
-        status: number
-    }
+    status?: number
 }

@@ -22,6 +22,13 @@ function statusString(status: number): string {
     }
 }
 
+function appendFirst(items: HTMLElement, newItem: HTMLElement) {
+    for(let i = items.childNodes.length; i > 0; i--){
+        items.childNodes[i+1] = items.childNodes[i];
+    }
+    items.childNodes[0] = newItem;
+}
+
 function createItem(listItem: TranssmisionPackage) {
     let listItemData: Data = listItem.data;
     console.log(listItemData);
@@ -120,8 +127,6 @@ function createItem(listItem: TranssmisionPackage) {
     newItem.appendChild(statusDiv);
     newItem.appendChild(printDiv);
 
-    items.appendChild(newItem);
-
     for(let i = 0; i < listItemData.products.length; i++) {
         let listItem = listItemData.products[i];
 
@@ -179,8 +184,10 @@ function createItem(listItem: TranssmisionPackage) {
         newItem.appendChild(aDiv);
         newItem.appendChild(bDiv);
 
-        items.appendChild(newItem);
+        appendFirst(items, newItem)
     }
+
+    items.appendChild(newItem);
 }
 
 ws.addEventListener("message", (data) => {

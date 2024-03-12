@@ -15,8 +15,11 @@ export class Cookies {
     public static remove = (cookieName: string) => {
         let cookie = Cookies.get(cookieName);
         if(cookie) {
-            cookie.expires = 0;
-            document.cookie = Cookies.serializeCookie(cookie);
+            let cookie1: Cookie = {name: cookie.name, value: ""};
+            cookie1.expires = 0;
+            cookie1.path = "/";
+            cookie1.sameSite = "Strict";
+            document.cookie = Cookies.serializeCookie(cookie1);
         }
     }
 

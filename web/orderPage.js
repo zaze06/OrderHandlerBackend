@@ -10,6 +10,7 @@ var Method;
     Method["CHECK"] = "CHECK";
     Method["REDIRECT"] = "REDIRECT";
     Method["UPDATE_ORDERS"] = "UPDATE_ORDERS";
+    Method["UPDATE_ORDER"] = "UPDATE_ORDER";
     Method["IDENTIFIER"] = "IDENTIFIER";
     Method["PRINT"] = "PRINT";
     Method["LIST"] = "LIST";
@@ -18,36 +19,95 @@ var Method;
     Method["ORDER"] = "ORDER";
     Method["LOGOUT"] = "LOGOUT";
     Method["ORDER_INFO"] = "ORDER_INFO";
+    Method["NEXT_STAGE"] = "NEXT_STAGE";
+    Method["PREVIOUS_STAGE"] = "PREVIOUS_STAGE";
+    Method["LOGIN_ERROR"] = "LOGIN_ERROR";
+    Method["NEWSLETTER_SEND"] = "NEWSLETTER_SEND";
 })(Method || (exports.Method = Method = {}));
 
 },{}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.RawOrderStatus = void 0;
+var RawOrderStatus;
+(function (RawOrderStatus) {
+    RawOrderStatus["DELIVERED"] = "DELIVERED";
+    RawOrderStatus["SHIPPED"] = "SHIPPED";
+    RawOrderStatus["PACKED"] = "PACKED";
+    RawOrderStatus["RECEIVED"] = "RECEIVED";
+    RawOrderStatus["UNKNOWN"] = "UNKNOWN";
+})(RawOrderStatus || (exports.RawOrderStatus = RawOrderStatus = {}));
+(function (RawOrderStatus) {
+    function advance(orderStatus) {
+        switch (orderStatus) {
+            case RawOrderStatus.RECEIVED: return RawOrderStatus.PACKED;
+            case RawOrderStatus.PACKED: return RawOrderStatus.SHIPPED;
+            case RawOrderStatus.SHIPPED: return RawOrderStatus.DELIVERED;
+            case RawOrderStatus.DELIVERED: return RawOrderStatus.DELIVERED;
+        }
+    }
+    RawOrderStatus.advance = advance;
+    function reverse(orderStatus) {
+        switch (orderStatus) {
+            case RawOrderStatus.RECEIVED:
+                return RawOrderStatus.RECEIVED;
+            case RawOrderStatus.PACKED:
+                return RawOrderStatus.RECEIVED;
+            case RawOrderStatus.SHIPPED:
+                return RawOrderStatus.PACKED;
+            case RawOrderStatus.DELIVERED:
+                return RawOrderStatus.SHIPPED;
+        }
+    }
+    RawOrderStatus.reverse = reverse;
+})(RawOrderStatus || (exports.RawOrderStatus = RawOrderStatus = {}));
+
+},{}],3:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var method_1 = require("../app/packages/method");
-var ws = new WebSocket("wss://orders.lassehjalpen.se");
+var rawOrderStatus_1 = require("../app/packages/rawOrderStatus");
+var ws = new WebSocket("wss://orders.lassehjalpen.se"); // orders.lassehjalpen.se
 var pathArray = window.location.href.split('/');
 var orderNumber = parseInt(pathArray[pathArray.length - 1]);
 var received = document.getElementById("received");
 var packed = document.getElementById("packed");
 var shipped = document.getElementById("shipped");
 var delivered = document.getElementById("delivered");
+var order = document.getElementById("order");
+var url = location.href;
+var queryString = location.search.substring(1);
+var paramPairs = queryString.split("&");
+var params = {};
+for (var i = 0; i < paramPairs.length; i++) {
+    var keyValue = paramPairs[i].split("=");
+    var key = keyValue[0];
+    var value = keyValue[1];
+    params[key] = value;
+}
+if (params["order"]) {
+    order.innerText = "Order: " + params["order"];
+}
 ws.addEventListener("open", function () {
-    send({
-        method: method_1.Method.ORDER_INFO,
-        data: {
-            order: orderNumber
-        }
-    });
+    if (params["order"]) {
+        send({
+            method: method_1.Method.ORDER_INFO,
+            data: {
+                order: params["order"]
+            }
+        });
+    }
 });
 ws.addEventListener("error", console.error);
 ws.addEventListener("message", function (data) {
     var dataPackage = JSON.parse(data.data);
+    console.log(dataPackage);
     if (dataPackage.method === method_1.Method.ORDER_INFO) {
-        switch (dataPackage.data.orderInfo.status) {
-            case 4: setValid(delivered);
-            case 3: setValid(shipped);
-            case 2: setValid(packed);
-            case 1:
+        switch (dataPackage.data.status) {
+            case rawOrderStatus_1.RawOrderStatus.DELIVERED: setValid(delivered);
+            case rawOrderStatus_1.RawOrderStatus.SHIPPED: setValid(shipped);
+            case rawOrderStatus_1.RawOrderStatus.PACKED: setValid(packed);
+            case rawOrderStatus_1.RawOrderStatus.RECEIVED:
                 setValid(received);
                 break;
         }
@@ -64,4 +124,4 @@ var send = function (dataPackage) {
     ws.send(JSON.stringify(dataPackage));
 };
 
-},{"../app/packages/method":1}]},{},[2]);
+},{"../app/packages/method":1,"../app/packages/rawOrderStatus":2}]},{},[3]);

@@ -10,6 +10,7 @@ var Method;
     Method["CHECK"] = "CHECK";
     Method["REDIRECT"] = "REDIRECT";
     Method["UPDATE_ORDERS"] = "UPDATE_ORDERS";
+    Method["UPDATE_ORDER"] = "UPDATE_ORDER";
     Method["IDENTIFIER"] = "IDENTIFIER";
     Method["PRINT"] = "PRINT";
     Method["LIST"] = "LIST";
@@ -18,6 +19,10 @@ var Method;
     Method["ORDER"] = "ORDER";
     Method["LOGOUT"] = "LOGOUT";
     Method["ORDER_INFO"] = "ORDER_INFO";
+    Method["NEXT_STAGE"] = "NEXT_STAGE";
+    Method["PREVIOUS_STAGE"] = "PREVIOUS_STAGE";
+    Method["LOGIN_ERROR"] = "LOGIN_ERROR";
+    Method["NEWSLETTER_SEND"] = "NEWSLETTER_SEND";
 })(Method || (exports.Method = Method = {}));
 
 },{}],2:[function(require,module,exports){
@@ -59,23 +64,29 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var cookies_1 = require("./api/cookies");
 var method_1 = require("../app/packages/method");
-var ws = new WebSocket("wss://orders.lassehjalpen.se:443"); //
+var Cookies = require("js-cookie");
+var ws = new WebSocket("wss://orders.lassehjalpen.se"); // orders.lassehjalpen.se
+var errorMessage = document.getElementById('error-message');
+var lang = document.location.href.split("/")[3];
 ws.addEventListener("error", console.error);
 ws.addEventListener("message", function (data) {
     var dataPackage = JSON.parse(data.data);
     if (dataPackage.method === method_1.Method.AUTHORISED) {
-        cookies_1.Cookies.set({
-            name: "accessToken",
-            value: dataPackage.data.accessToken,
+        Cookies.set("accessToken", dataPackage.data.accessToken, {
             expires: dataPackage.data.expirationDate,
-            domain: "orders.lassehjalpen.se"
+            path: "/",
+            domain: "lassehjalpen.se",
+            sameSite: "None",
+            secure: true
         });
         window.location.href = dataPackage.data.page;
     }
     else if (dataPackage.method === method_1.Method.REDIRECT) {
         window.location.href = dataPackage.data.page;
+    }
+    else if (dataPackage.method === method_1.Method.LOGIN_ERROR) {
+        errorMessage.style.display = 'block';
     }
 });
 ws.addEventListener("open", function () {
@@ -112,11 +123,9 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
     });
 });
 // @ts-ignore
-window.toggleLoginForm = function () {
+window.logoutButton = function () {
     var loginForm = document.querySelector('.login-form');
     loginForm.style.display = (loginForm.style.display === "none" || loginForm.style.display === "") ? "block" : "none";
-    var loginDiv = document.querySelector('.login-div');
-    loginDiv.style.display = "none";
 };
 var searchBar = document.getElementById("orderSearch");
 var regexp = /^#[0-9]{4,}$/;
@@ -125,6 +134,7 @@ searchBar.addEventListener("keydown", function (evt) {
         ws.send(JSON.stringify({
             method: method_1.Method.ORDER,
             data: {
+                lang: lang,
                 orderID: searchBar.value
             }
         }));
@@ -139,70 +149,153 @@ searchBar.addEventListener("input", function (evt) {
     }
 });
 
-},{"../app/packages/method":1,"./api/cookies":3}],3:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Cookies = void 0;
-var Cookies = /** @class */ (function () {
-    function Cookies() {
+},{"../app/packages/method":1,"js-cookie":3}],3:[function(require,module,exports){
+/*! js-cookie v3.0.5 | MIT */
+;
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, (function () {
+    var current = global.Cookies;
+    var exports = global.Cookies = factory();
+    exports.noConflict = function () { global.Cookies = current; return exports; };
+  })());
+})(this, (function () { 'use strict';
+
+  /* eslint-disable no-var */
+  function assign (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+      for (var key in source) {
+        target[key] = source[key];
+      }
     }
-    Cookies.parseCookies = function (cookieString) {
-        var cookies = [];
-        if (cookieString) {
-            var cookiePairs = cookieString.split(';');
-            for (var _i = 0, cookiePairs_1 = cookiePairs; _i < cookiePairs_1.length; _i++) {
-                var pair = cookiePairs_1[_i];
-                var _a = pair.trim().split('='), name_1 = _a[0], value = _a[1];
-                var cookie = { name: name_1, value: value };
-                cookies.push(cookie);
-            }
+    return target
+  }
+  /* eslint-enable no-var */
+
+  /* eslint-disable no-var */
+  var defaultConverter = {
+    read: function (value) {
+      if (value[0] === '"') {
+        value = value.slice(1, -1);
+      }
+      return value.replace(/(%[\dA-F]{2})+/gi, decodeURIComponent)
+    },
+    write: function (value) {
+      return encodeURIComponent(value).replace(
+        /%(2[346BF]|3[AC-F]|40|5[BDE]|60|7[BCD])/g,
+        decodeURIComponent
+      )
+    }
+  };
+  /* eslint-enable no-var */
+
+  /* eslint-disable no-var */
+
+  function init (converter, defaultAttributes) {
+    function set (name, value, attributes) {
+      if (typeof document === 'undefined') {
+        return
+      }
+
+      attributes = assign({}, defaultAttributes, attributes);
+
+      if (typeof attributes.expires === 'number') {
+        attributes.expires = new Date(Date.now() + attributes.expires * 864e5);
+      }
+      if (attributes.expires) {
+        attributes.expires = attributes.expires.toUTCString();
+      }
+
+      name = encodeURIComponent(name)
+        .replace(/%(2[346B]|5E|60|7C)/g, decodeURIComponent)
+        .replace(/[()]/g, escape);
+
+      var stringifiedAttributes = '';
+      for (var attributeName in attributes) {
+        if (!attributes[attributeName]) {
+          continue
         }
-        return cookies;
-    };
-    Cookies.serializeCookie = function (cookie) {
-        var cookieString = "".concat(cookie.name, "=").concat(cookie.value);
-        if (cookie.expires) {
-            var expiresDate = new Date(cookie.expires);
-            cookieString += "; Expires=".concat(expiresDate.toUTCString());
+
+        stringifiedAttributes += '; ' + attributeName;
+
+        if (attributes[attributeName] === true) {
+          continue
         }
-        if (cookie.domain) {
-            cookieString += "; Domain=".concat(cookie.domain);
+
+        // Considers RFC 6265 section 5.2:
+        // ...
+        // 3.  If the remaining unparsed-attributes contains a %x3B (";")
+        //     character:
+        // Consume the characters of the unparsed-attributes up to,
+        // not including, the first %x3B (";") character.
+        // ...
+        stringifiedAttributes += '=' + attributes[attributeName].split(';')[0];
+      }
+
+      return (document.cookie =
+        name + '=' + converter.write(value, name) + stringifiedAttributes)
+    }
+
+    function get (name) {
+      if (typeof document === 'undefined' || (arguments.length && !name)) {
+        return
+      }
+
+      // To prevent the for loop in the first place assign an empty array
+      // in case there are no cookies at all.
+      var cookies = document.cookie ? document.cookie.split('; ') : [];
+      var jar = {};
+      for (var i = 0; i < cookies.length; i++) {
+        var parts = cookies[i].split('=');
+        var value = parts.slice(1).join('=');
+
+        try {
+          var found = decodeURIComponent(parts[0]);
+          jar[found] = converter.read(value, found);
+
+          if (name === found) {
+            break
+          }
+        } catch (e) {}
+      }
+
+      return name ? jar[name] : jar
+    }
+
+    return Object.create(
+      {
+        set,
+        get,
+        remove: function (name, attributes) {
+          set(
+            name,
+            '',
+            assign({}, attributes, {
+              expires: -1
+            })
+          );
+        },
+        withAttributes: function (attributes) {
+          return init(this.converter, assign({}, this.attributes, attributes))
+        },
+        withConverter: function (converter) {
+          return init(assign({}, this.converter, converter), this.attributes)
         }
-        if (cookie.path) {
-            cookieString += "; Path=".concat(cookie.path);
-        }
-        if (cookie.secure) {
-            cookieString += "; Secure";
-        }
-        if (cookie.httpOnly) {
-            cookieString += "; HttpOnly";
-        }
-        if (cookie.sameSite) {
-            cookieString += "; SameSite=".concat(cookie.sameSite);
-        }
-        return cookieString;
-    };
-    Cookies.get = function (cookieName) {
-        for (var _i = 0, _a = Cookies.parseCookies(document.cookie); _i < _a.length; _i++) {
-            var cookie = _a[_i];
-            if (cookie.name === cookieName) {
-                return cookie;
-            }
-        }
-        return undefined;
-    };
-    Cookies.set = function (cookie) {
-        document.cookie = Cookies.serializeCookie(cookie);
-    };
-    Cookies.remove = function (cookieName) {
-        var cookie = Cookies.get(cookieName);
-        if (cookie) {
-            cookie.expires = 0;
-            document.cookie = Cookies.serializeCookie(cookie);
-        }
-    };
-    return Cookies;
-}());
-exports.Cookies = Cookies;
+      },
+      {
+        attributes: { value: Object.freeze(defaultAttributes) },
+        converter: { value: Object.freeze(converter) }
+      }
+    )
+  }
+
+  var api = init(defaultConverter, { path: '/' });
+  /* eslint-enable no-var */
+
+  return api;
+
+}));
 
 },{}]},{},[2]);

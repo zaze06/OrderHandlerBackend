@@ -1,4 +1,5 @@
 import {randomUUID} from "crypto";
+import * as fs from "fs";
 
 interface AccessToken {
     id: string;
@@ -8,8 +9,11 @@ interface AccessToken {
 
 export class sessions {
 
+    private static users: {[key: string]: string} = JSON.parse(fs.readFileSync("./config/users.json", "utf8"))
+
     private static validSessions: AccessToken[] = [];
-    public static createNewSession = (username: string): AccessToken => {
+    public static createNewSession = (username: string, password: string): AccessToken | null => {
+        if(!(sessions.users[username] == password)) return null
         const sessionID = randomUUID();
         const expirationTime = Date.now() + 14400000;// 4hours in milliseconds
         const session: AccessToken = {id: sessionID, expirationTime, user: username};
@@ -40,6 +44,8 @@ export class sessions {
      * @param accessTokenID Access token for a session
      */
     public static getUsername = (accessTokenID: string): string => {
+        console.log(accessTokenID);
+        console.log(sessions.validSessions)
         if(!accessTokenID) return "";
         const session = sessions.validSessions.find((session) => session.id === accessTokenID);
         if(!session) return "";
@@ -54,4 +60,6 @@ export class sessions {
     public static removeSession = (accessTokenID: string) => {
         sessions.validSessions = sessions.validSessions.filter(session => session.id !== accessTokenID);
     }
+
+
 }

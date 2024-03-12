@@ -1,84 +1,56 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Cookies = void 0;
-var Cookies = /** @class */ (function () {
-    function Cookies() {
-    }
-    Cookies.parseCookies = function (cookieString) {
-        var cookies = [];
-        if (cookieString) {
-            var cookiePairs = cookieString.split(';');
-            for (var _i = 0, cookiePairs_1 = cookiePairs; _i < cookiePairs_1.length; _i++) {
-                var pair = cookiePairs_1[_i];
-                var _a = pair.trim().split('='), name_1 = _a[0], value = _a[1];
-                var cookie = { name: name_1, value: value };
-                cookies.push(cookie);
-            }
-        }
-        return cookies;
-    };
-    Cookies.serializeCookie = function (cookie) {
-        var cookieString = "".concat(cookie.name, "=").concat(cookie.value);
-        if (cookie.expires) {
-            var expiresDate = new Date(cookie.expires);
-            cookieString += "; Expires=".concat(expiresDate.toUTCString());
-        }
-        if (cookie.domain) {
-            cookieString += "; Domain=".concat(cookie.domain);
-        }
-        if (cookie.path) {
-            cookieString += "; Path=".concat(cookie.path);
-        }
-        if (cookie.secure) {
-            cookieString += "; Secure";
-        }
-        if (cookie.httpOnly) {
-            cookieString += "; HttpOnly";
-        }
-        if (cookie.sameSite) {
-            cookieString += "; SameSite=".concat(cookie.sameSite);
-        }
-        return cookieString;
-    };
-    Cookies.get = function (cookieName) {
-        for (var _i = 0, _a = Cookies.parseCookies(document.cookie); _i < _a.length; _i++) {
-            var cookie = _a[_i];
-            if (cookie.name === cookieName) {
-                return cookie;
-            }
-        }
-        return undefined;
-    };
-    Cookies.set = function (cookie) {
-        document.cookie = Cookies.serializeCookie(cookie);
-    };
-    Cookies.remove = function (cookieName) {
-        var cookie = Cookies.get(cookieName);
-        if (cookie) {
-            cookie.expires = 0;
-            document.cookie = Cookies.serializeCookie(cookie);
-        }
-    };
-    return Cookies;
-}());
-exports.Cookies = Cookies;
+exports.Method = void 0;
+var Method;
+(function (Method) {
+    Method["LOGIN"] = "LOGIN";
+    Method["AUTHORISE"] = "AUTHORISE";
+    Method["AUTHORISED"] = "AUTHORISED";
+    Method["CHECK"] = "CHECK";
+    Method["REDIRECT"] = "REDIRECT";
+    Method["UPDATE_ORDERS"] = "UPDATE_ORDERS";
+    Method["UPDATE_ORDER"] = "UPDATE_ORDER";
+    Method["IDENTIFIER"] = "IDENTIFIER";
+    Method["PRINT"] = "PRINT";
+    Method["LIST"] = "LIST";
+    Method["REQUEST_ORDERS"] = "REQUEST_ORDERS";
+    Method["INFO"] = "INFO";
+    Method["ORDER"] = "ORDER";
+    Method["LOGOUT"] = "LOGOUT";
+    Method["ORDER_INFO"] = "ORDER_INFO";
+    Method["NEXT_STAGE"] = "NEXT_STAGE";
+    Method["PREVIOUS_STAGE"] = "PREVIOUS_STAGE";
+    Method["LOGIN_ERROR"] = "LOGIN_ERROR";
+    Method["NEWSLETTER_SEND"] = "NEWSLETTER_SEND";
+})(Method || (exports.Method = Method = {}));
 
 },{}],2:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var cookies_1 = require("./api/cookies");
-var accessToken = cookies_1.Cookies.get("accessToken").value;
-var ws = new WebSocket("wss://orders.lassehjalpen.se:443"); //
+var Cookies = require("js-cookie");
+var method_1 = require("../app/packages/method");
+var accessToken = Cookies.get("accessToken");
+var ws = new WebSocket("wss://orders.lassehjalpen.se"); // orders.lassehjalpen.se
 var items = document.getElementById("items");
 var info = document.getElementById("info");
+var logoutButton = document.getElementById("logoutButton");
 var orders = [];
 ws.addEventListener("error", console.error);
+function statusString(status) {
+    switch (status) {
+        case 4: return ("delivered");
+        case 3: return ("shipped");
+        case 2: return ("packed");
+        case 1: return ("received");
+    }
+}
 function createItem(listItem) {
-    var listItemData = listItem["data"];
-    if (orders[listItemData["order"]])
+    var listItemData = listItem.data;
+    console.log(listItemData);
+    if (orders[listItemData.order])
         return;
-    orders[listItemData["order"]] = true;
+    orders[listItemData.order] = true;
     var newItem = document.createElement("div");
     newItem.style.maxHeight = "22px";
     newItem.className = "item";
@@ -90,40 +62,78 @@ function createItem(listItem) {
     var emailItem = document.createElement("a");
     var aDiv = document.createElement("div");
     var aItem = document.createElement("a");
+    var statusDiv = document.createElement("div");
+    var statusItem = document.createElement("a");
     var printDiv = document.createElement("div");
     var printButton = document.createElement("button");
+    var nextStepButton = document.createElement("button");
+    var previousStageButton = document.createElement("button");
     orderDiv.appendChild(orderItem);
     orderDiv.className = "itemInfo";
-    orderItem.innerText = listItemData["order"] || " ";
+    orderItem.innerText = listItemData.order.toString() || " ";
     orderItem.className = "itemText";
     nameDiv.appendChild(nameItem);
     nameDiv.className = "itemInfo";
-    nameItem.innerText = listItem["data"]["information"]["name"] || " ";
+    nameItem.innerText = listItem.data.information.name || " ";
     nameItem.className = "itemText";
     emailDiv.appendChild(emailItem);
     emailDiv.className = "itemInfo";
-    emailItem.innerText = listItem["data"]["information"]["email"] || " ";
+    emailItem.innerText = listItem.data.information.email || " ";
     emailItem.className = "itemText";
     aDiv.appendChild(aItem);
     aDiv.className = "itemInfo";
     aItem.innerText = " ";
     aItem.className = "itemText";
+    statusDiv.appendChild(statusItem);
+    statusDiv.className = "itemInfo";
+    statusItem.innerText = listItem.data.status.toLowerCase() || " ";
+    statusItem.className = "itemText";
+    statusItem.id = listItem.data.order.toString() || " ";
     printDiv.appendChild(printButton);
     printDiv.className = "itemInfo";
     printButton.onclick = function () {
-        console.log(listItemData["order"]);
-        sendPrint(listItemData["order"]);
+        console.log(listItemData.order);
+        sendPrint(listItemData.order);
     };
     printButton.className = "itemText";
     printButton.innerText = "print";
+    printButton.style.marginRight = "3px";
+    printDiv.appendChild(nextStepButton);
+    printDiv.className = "itemInfo";
+    nextStepButton.onclick = function () {
+        ws.send(JSON.stringify({
+            method: method_1.Method.NEXT_STAGE,
+            data: {
+                order: listItemData.order,
+                accessToken: accessToken
+            }
+        }));
+    };
+    nextStepButton.className = "itemText";
+    nextStepButton.innerText = "Next";
+    nextStepButton.style.marginRight = "3px";
+    printDiv.appendChild(previousStageButton);
+    printDiv.className = "itemInfo";
+    previousStageButton.onclick = function () {
+        ws.send(JSON.stringify({
+            method: method_1.Method.PREVIOUS_STAGE,
+            data: {
+                order: listItemData.order,
+                accessToken: accessToken
+            }
+        }));
+    };
+    previousStageButton.className = "itemText";
+    previousStageButton.innerText = "Previous";
     newItem.appendChild(orderDiv);
     newItem.appendChild(nameDiv);
     newItem.appendChild(emailDiv);
     newItem.appendChild(aDiv);
+    newItem.appendChild(statusDiv);
     newItem.appendChild(printDiv);
     items.appendChild(newItem);
-    for (var i = 0; i < listItemData["products"].length; i++) {
-        var listItem_1 = listItemData["products"][i];
+    for (var i = 0; i < listItemData.products.length; i++) {
+        var listItem_1 = listItemData.products[i];
         var newItem_1 = document.createElement("div");
         newItem_1.style.maxHeight = "22px";
         newItem_1.className = "item";
@@ -137,6 +147,8 @@ function createItem(listItem) {
         var amountItem = document.createElement("a");
         var aDiv_1 = document.createElement("div");
         var aItem_1 = document.createElement("a");
+        var bDiv = document.createElement("div");
+        var bItem = document.createElement("a");
         emptyDiv.appendChild(emptyItem);
         emptyDiv.className = "itemInfo";
         emptyItem.innerText = " ";
@@ -151,40 +163,48 @@ function createItem(listItem) {
         descriptionItem.className = "itemText";
         amountDiv.appendChild(amountItem);
         amountDiv.className = "itemInfo";
-        amountItem.innerText = listItem_1["amount"] || " ";
+        amountItem.innerText = listItem_1.amount.toString() || " ";
         amountItem.className = "itemText";
         aDiv_1.appendChild(aItem_1);
         aDiv_1.className = "itemInfo";
         aItem_1.className = "itemText";
         aItem_1.innerText = " ";
+        bDiv.appendChild(bItem);
+        bDiv.className = "itemInfo";
+        bItem.className = "itemText";
+        bItem.innerText = " ";
         newItem_1.appendChild(emptyDiv);
         newItem_1.appendChild(nameDiv_1);
         newItem_1.appendChild(descriptionDiv);
         newItem_1.appendChild(amountDiv);
         newItem_1.appendChild(aDiv_1);
+        newItem_1.appendChild(bDiv);
         items.appendChild(newItem_1);
     }
 }
 ws.addEventListener("message", function (data) {
     var dataPackage = JSON.parse(data.data);
     console.log(dataPackage);
-    var receivedPackageData = dataPackage["data"];
-    if (dataPackage["method"] === "UPDATE_ORDERS") {
-        createItem(receivedPackageData);
+    var receivedPackageData = dataPackage.data;
+    if (dataPackage.method === method_1.Method.UPDATE_ORDERS) {
+        //createItem(receivedPackageData);
     }
-    else if (dataPackage["method"] === "LIST") {
+    else if (dataPackage.method === method_1.Method.LIST) {
         for (var i = 0; i < receivedPackageData["list"].length; i++) {
             var listItem = receivedPackageData["list"][i];
-            if (listItem["method"] === "UPDATE_ORDERS") {
+            if (listItem.method === method_1.Method.UPDATE_ORDERS) {
                 createItem(listItem);
             }
         }
     }
-    else if (dataPackage["method"] === "info") {
+    else if (dataPackage.method === method_1.Method.INFO) {
         info.innerText = dataPackage["data"]["text"];
     }
-    else if (dataPackage["method"] === "REDIRECT") {
+    else if (dataPackage.method === method_1.Method.REDIRECT) {
         window.location.href = dataPackage["data"]["page"];
+    }
+    else if (dataPackage.method === method_1.Method.UPDATE_ORDER) {
+        document.getElementById(dataPackage.data.order.toString()).innerText = dataPackage.data.status.toLowerCase();
     }
 });
 ws.addEventListener("open", function () {
@@ -195,7 +215,7 @@ ws.addEventListener("open", function () {
             }
             else {
                 ws.send(JSON.stringify({
-                    method: "IDENTIFIER",
+                    method: method_1.Method.IDENTIFIER,
                     data: {
                         listener: "newOrder",
                         accessToken: accessToken
@@ -206,7 +226,7 @@ ws.addEventListener("open", function () {
     }
     else {
         ws.send(JSON.stringify({
-            method: "IDENTIFIER",
+            method: method_1.Method.IDENTIFIER,
             data: {
                 listener: "newOrder",
                 accessToken: accessToken
@@ -218,22 +238,175 @@ ws.addEventListener("close", function () {
 });
 var sendPrint = function (order) {
     ws.send(JSON.stringify({
-        method: "PRINT",
+        method: method_1.Method.PRINT,
         data: {
             order: order,
             accessToken: accessToken
         }
     }));
 };
-// @ts-ignore
-window.logout = function () {
+logoutButton.onclick = function () {
     ws.send(JSON.stringify({
-        method: "LOGOUT",
+        method: method_1.Method.LOGOUT,
         data: {
             accessToken: accessToken
         }
     }));
-    cookies_1.Cookies.remove("accessToken");
+    Cookies.remove("accessToken", {
+        path: "/",
+        domain: "lassehjalpen.se",
+        sameSite: "None",
+        secure: true
+    });
 };
 
-},{"./api/cookies":1}]},{},[2]);
+},{"../app/packages/method":1,"js-cookie":3}],3:[function(require,module,exports){
+/*! js-cookie v3.0.5 | MIT */
+;
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, (function () {
+    var current = global.Cookies;
+    var exports = global.Cookies = factory();
+    exports.noConflict = function () { global.Cookies = current; return exports; };
+  })());
+})(this, (function () { 'use strict';
+
+  /* eslint-disable no-var */
+  function assign (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+      for (var key in source) {
+        target[key] = source[key];
+      }
+    }
+    return target
+  }
+  /* eslint-enable no-var */
+
+  /* eslint-disable no-var */
+  var defaultConverter = {
+    read: function (value) {
+      if (value[0] === '"') {
+        value = value.slice(1, -1);
+      }
+      return value.replace(/(%[\dA-F]{2})+/gi, decodeURIComponent)
+    },
+    write: function (value) {
+      return encodeURIComponent(value).replace(
+        /%(2[346BF]|3[AC-F]|40|5[BDE]|60|7[BCD])/g,
+        decodeURIComponent
+      )
+    }
+  };
+  /* eslint-enable no-var */
+
+  /* eslint-disable no-var */
+
+  function init (converter, defaultAttributes) {
+    function set (name, value, attributes) {
+      if (typeof document === 'undefined') {
+        return
+      }
+
+      attributes = assign({}, defaultAttributes, attributes);
+
+      if (typeof attributes.expires === 'number') {
+        attributes.expires = new Date(Date.now() + attributes.expires * 864e5);
+      }
+      if (attributes.expires) {
+        attributes.expires = attributes.expires.toUTCString();
+      }
+
+      name = encodeURIComponent(name)
+        .replace(/%(2[346B]|5E|60|7C)/g, decodeURIComponent)
+        .replace(/[()]/g, escape);
+
+      var stringifiedAttributes = '';
+      for (var attributeName in attributes) {
+        if (!attributes[attributeName]) {
+          continue
+        }
+
+        stringifiedAttributes += '; ' + attributeName;
+
+        if (attributes[attributeName] === true) {
+          continue
+        }
+
+        // Considers RFC 6265 section 5.2:
+        // ...
+        // 3.  If the remaining unparsed-attributes contains a %x3B (";")
+        //     character:
+        // Consume the characters of the unparsed-attributes up to,
+        // not including, the first %x3B (";") character.
+        // ...
+        stringifiedAttributes += '=' + attributes[attributeName].split(';')[0];
+      }
+
+      return (document.cookie =
+        name + '=' + converter.write(value, name) + stringifiedAttributes)
+    }
+
+    function get (name) {
+      if (typeof document === 'undefined' || (arguments.length && !name)) {
+        return
+      }
+
+      // To prevent the for loop in the first place assign an empty array
+      // in case there are no cookies at all.
+      var cookies = document.cookie ? document.cookie.split('; ') : [];
+      var jar = {};
+      for (var i = 0; i < cookies.length; i++) {
+        var parts = cookies[i].split('=');
+        var value = parts.slice(1).join('=');
+
+        try {
+          var found = decodeURIComponent(parts[0]);
+          jar[found] = converter.read(value, found);
+
+          if (name === found) {
+            break
+          }
+        } catch (e) {}
+      }
+
+      return name ? jar[name] : jar
+    }
+
+    return Object.create(
+      {
+        set,
+        get,
+        remove: function (name, attributes) {
+          set(
+            name,
+            '',
+            assign({}, attributes, {
+              expires: -1
+            })
+          );
+        },
+        withAttributes: function (attributes) {
+          return init(this.converter, assign({}, this.attributes, attributes))
+        },
+        withConverter: function (converter) {
+          return init(assign({}, this.converter, converter), this.attributes)
+        }
+      },
+      {
+        attributes: { value: Object.freeze(defaultAttributes) },
+        converter: { value: Object.freeze(converter) }
+      }
+    )
+  }
+
+  var api = init(defaultConverter, { path: '/' });
+  /* eslint-enable no-var */
+
+  return api;
+
+}));
+
+},{}]},{},[2]);

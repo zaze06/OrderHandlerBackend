@@ -1,14 +1,15 @@
-import {Cookies} from "./api/cookies";
+import * as Cookies from "js-cookie";
 import {TranssmisionPackage} from "../app/packages/transsmisionPackage";
 import {Method} from "../app/packages/method";
 import {Data} from "../app/packages/data";
 
-let accessToken = Cookies.get("accessToken").value;
+let accessToken = Cookies.get("accessToken");
 
-let ws = new WebSocket("wss://localhost"); // orders.lassehjalpen.se
+let ws = new WebSocket("wss://orders.lassehjalpen.se"); // orders.lassehjalpen.se
 
 let items = document.getElementById("items");
 let info = document.getElementById("info");
+let logoutButton = document.getElementById("logoutButton");
 let orders = [];
 
 ws.addEventListener("error", console.error);
@@ -20,13 +21,6 @@ function statusString(status: number): string {
         case 2: return("packed");
         case 1: return("received");
     }
-}
-
-function appendFirst(items: HTMLElement, newItem: HTMLElement) {
-    for(let i = items.childNodes.length; i > 0; i--){
-        items.childNodes[i+1] = items.childNodes[i];
-    }
-    items.childNodes[0] = newItem;
 }
 
 function createItem(listItem: TranssmisionPackage) {
@@ -77,7 +71,7 @@ function createItem(listItem: TranssmisionPackage) {
 
     statusDiv.appendChild(statusItem);
     statusDiv.className = "itemInfo";
-    statusItem.innerText = statusString(listItem.data.status) || " ";
+    statusItem.innerText = listItem.data.status.toLowerCase() || " ";
     statusItem.className = "itemText";
     statusItem.id = listItem.data.order.toString() || " ";
 
@@ -126,6 +120,8 @@ function createItem(listItem: TranssmisionPackage) {
     newItem.appendChild(aDiv);
     newItem.appendChild(statusDiv);
     newItem.appendChild(printDiv);
+
+    items.appendChild(newItem);
 
     for(let i = 0; i < listItemData.products.length; i++) {
         let listItem = listItemData.products[i];
@@ -184,10 +180,8 @@ function createItem(listItem: TranssmisionPackage) {
         newItem.appendChild(aDiv);
         newItem.appendChild(bDiv);
 
-        appendFirst(items, newItem)
+        items.appendChild(newItem);
     }
-
-    items.appendChild(newItem);
 }
 
 ws.addEventListener("message", (data) => {
@@ -212,7 +206,7 @@ ws.addEventListener("message", (data) => {
         window.location.href = dataPackage["data"]["page"];
     }
     else if(dataPackage.method === Method.UPDATE_ORDER){
-        document.getElementById(dataPackage.data.order.toString()).innerText = statusString(dataPackage.data.status);
+        document.getElementById(dataPackage.data.order.toString()).innerText = dataPackage.data.status.toLowerCase();
     }
 });
 
@@ -255,13 +249,17 @@ const sendPrint = (order) => {
     }))
 }
 
-// @ts-ignore
-window.logout = () => {
+logoutButton.onclick = () => {
     ws.send(JSON.stringify({
         method: Method.LOGOUT,
         data: {
             accessToken: accessToken
         }
     }));
-    Cookies.remove("accessToken");
+    Cookies.remove("accessToken", {
+        path: "/",
+        domain: "lassehjalpen.se",
+        sameSite: "None",
+        secure: true
+    });
 }

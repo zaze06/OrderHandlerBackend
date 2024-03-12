@@ -3,6 +3,7 @@ import {TranssmisionPackage} from "./transsmisionPackage";
 import {Product} from "./product";
 import {Information} from "./information";
 import {Method} from "./method";
+import {RawOrderStatus} from "./rawOrderStatus";
 
 export type Data = {
     username?: string,
@@ -23,5 +24,10 @@ export type Data = {
     method?: Method,
     orderID?: string,
     expirationDate?: number,
-    status?: number
+    status?: RawOrderStatus,
+    lang?: string,
+    newsletter?: {
+        email: string,
+        subject: string
+    }
 }

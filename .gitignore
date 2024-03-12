@@ -1,1 +1,9 @@
 /build/
+/config/
+/cert/
+/node_modules/
+/data/
+
+./oneWebApp
+./makefile
+./run

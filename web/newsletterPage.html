@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newsletter Sender</title>
+
+    <style>
+        textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1>Newsletter sender</h1>
+</div>
+<div>
+    <a id="info"></a>
+    <label for="subject"></label><textarea style="height: 3em" placeholder="Enter subject text here..." id="subject"></textarea>
+    <label for="message"></label><textarea style="height: 30em" placeholder="Enter html compatible text here..." id="message"></textarea>
+    <button id="send">Send</button>
+</div>
+<script type="module" src="newsletterPage.js"></script>
+</body>
+</html>

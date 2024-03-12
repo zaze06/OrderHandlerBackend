@@ -1,24 +1,30 @@
-import {Cookies} from "./api/cookies";
 import {TranssmisionPackage} from "../app/packages/transsmisionPackage";
 import {Method} from "../app/packages/method";
+import * as Cookies from "js-cookie";
 
-let ws: WebSocket = new WebSocket("wss://localhost"); // orders.lassehjalpen.se
+let ws: WebSocket = new WebSocket("wss://orders.lassehjalpen.se"); // orders.lassehjalpen.se
+
+let errorMessage = document.getElementById('error-message');
+
+
+let lang = document.location.href.split("/")[3];
 
 ws.addEventListener("error", console.error);
 ws.addEventListener("message", (data) => {
     let dataPackage: TranssmisionPackage = JSON.parse(data.data);
     if(dataPackage.method === Method.AUTHORISED){
-        Cookies.set({
-            name: "accessToken",
-            value: dataPackage.data.accessToken,
+        Cookies.set("accessToken", dataPackage.data.accessToken, {
             expires: dataPackage.data.expirationDate,
-            domain: "localhost", // orders.lassehjalpen.se
-            sameSite: "Strict",
+            path: "/",
+            domain: "lassehjalpen.se",
+            sameSite: "None",
             secure: true
-        })
+        });
         window.location.href = dataPackage.data.page;
     }else if(dataPackage.method === Method.REDIRECT){
         window.location.href = dataPackage.data.page;
+    }else if(dataPackage.method === Method.LOGIN_ERROR){
+        errorMessage.style.display = 'block';
     }
 });
 ws.addEventListener("open", () => {
@@ -57,11 +63,9 @@ document.getElementById('loginForm').addEventListener('submit', async function (
 });
 
 // @ts-ignore
-window.toggleLoginForm = () => {
+window.logoutButton = () => {
     let loginForm: HTMLFormElement = document.querySelector('.login-form');
     loginForm.style.display = (loginForm.style.display === "none" || loginForm.style.display === "") ? "block" : "none";
-    let loginDiv: HTMLDivElement = document.querySelector('.login-div');
-    loginDiv.style.display = "none"
 }
 
 let searchBar: HTMLInputElement = document.getElementById("orderSearch") as HTMLInputElement;
@@ -73,6 +77,7 @@ searchBar.addEventListener("keydown", (evt) => {
         ws.send(JSON.stringify({
             method: Method.ORDER,
             data: {
+                lang: lang,
                 orderID: searchBar.value
             }
         }))

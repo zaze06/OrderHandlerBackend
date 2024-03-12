@@ -8,21 +8,38 @@
     "build": "npm run compile && npm run browserfy",
     "compile": "tsc -p ./tsconfig.json",
     "browserfy": "node browserfy.js",
-    "deploy": "npm run copy-files && npm run copy-packages && npm run copy-icons",
-    "copy-files": "copyfiles 'web/*' '~/webstore/frontend/web' -u 1",
-    "copy-packages": "copyfiles 'build/app/*.js' '~/webstore/frontend/src/packages' -u 1",
-    "copy-icons": "copyfiles 'icons/*' '~/webstore/frontend/icons' -u 1",
-    "restart": "echo 'Restarting web-shop-orders service' && sudo service web-shop-orders restart",
-    "run": "npm run build && node build/app/main.js"
+    "deploy": "npm run copy-web-files && npm run copy-files && npm run copy-packages && npm run copy-icons && npm run copy-config && npm run copy-admin-panel && npm run copy-newsletter-handler && npm run copy-online-store && npm run copy-web-handler",
+    "copy-web-files": "copyfiles 'web/*' '~/webshopManagement/web' -u 1",
+    "copy-files": "copyfiles 'build/app/*.js' '~/webshopManagement/app' -u 1",
+    "copy-packages": "copyfiles 'build/app/packages/*.js' '~/webshopManagement/app' -u 1",
+    "copy-admin-panel": "copyfiles 'build/adminPanel/*.js' '~/webshopManagement/app' -u 1",
+    "copy-newsletter-handler": "copyfiles 'build/newsletterHandler/*.js' '~/webshopManagement/app' -u 1",
+    "copy-online-store": "copyfiles 'build/onlineStore/*.js' '~/webshopManagement/app' -u 1",
+    "copy-web-handler": "copyfiles 'build/webHandler/*.js' '~/webshopManagement/app' -u 1",
+    "copy-icons": "copyfiles 'icons/*' '~/webshopManagement/icons' -u 1",
+    "copy-config": "copyfiles 'config/*' '~/webshopManagement/config' -u 1",
+    "restart": "echo 'Restarting web-shop-orders service' && sudo service web-shop-handler restart",
+    "run": "npm run build && sudo node build/app/main.js",
+    "run-inspect": "npm run build && sudo node --inspect build/app/main.js"
   },
   "devDependencies": {
-    "copyfiles": "^2.4.1"
+    "copyfiles": "^2.4.1",
+    "javascript-obfuscator": "^4.1.0"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/http-proxy": "^1.17.14",
+    "@types/js-cookie": "^3.0.6",
+    "@types/jsonwebtoken": "^9.0.5",
     "@types/node": "^20.10.6",
+    "@types/nodemailer": "^6.4.14",
     "@types/ws": "^8.5.10",
+    "axios": "^1.6.7",
+    "http-proxy": "^1.18.1",
+    "js-cookie": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.10",
     "ws": "^8.16.0"
   }
 }
